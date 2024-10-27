@@ -63,7 +63,7 @@ namespace Integrations.Storage.Inspector
                         _hostApplicationLifetime.StopApplication();
                         return;
                     }
-                }
+            }
             while (proceed);
         }
 

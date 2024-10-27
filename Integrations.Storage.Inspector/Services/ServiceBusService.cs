@@ -16,8 +16,6 @@ namespace Integrations.Storage.Inspector.Services
         public ServiceBusService(IOptions<AppSettings> options, IOptions<Connections> connOptions)
         {
             _appSettings = options.Value;
-            //_serviceBusClient = new(_appSettings.ServiceBusConnectionString);
-            //_serviceBusAdministrationClient = new ServiceBusAdministrationClient(_appSettings.ServiceBusConnectionString);
         }
 
         public void InitializeConnection(Connection connection)
@@ -84,13 +82,6 @@ namespace Integrations.Storage.Inspector.Services
                 }
             } while (true);
             return messages;
-
-            //List<string> eventList = new();
-            //foreach (var message in peekedMessage)
-            //{
-            //    eventList.Add(JsonPrettifyHelper.Prettify(message.Body.ToString()));
-            //}
-            //return eventList;
         }
     }
 }

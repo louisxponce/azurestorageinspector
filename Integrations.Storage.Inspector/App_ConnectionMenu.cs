@@ -5,7 +5,7 @@ namespace Integrations.Storage.Inspector
 {
     public partial class App : BackgroundService
     {
-        private void ConnectionSelectionMenu()
+        private bool ConnectionSelectionMenu()
         {
             ColorConsole.WriteMenu("[ ] Select a connection by index number");
             for (int i = 0; i < _connections?.connections.Count; i++)
@@ -15,6 +15,11 @@ namespace Integrations.Storage.Inspector
             do
             {
                 var input = ColorConsole.Prompt();
+                if (input.ToLower() == "x")
+                {
+                    return false;
+                }
+                
                 var i = 0;
                 if (int.TryParse(input, out i) && i < _connections?.connections.Count)
                 {
@@ -23,7 +28,7 @@ namespace Integrations.Storage.Inspector
                     _serviceBusService.InitializeConnection(connection);
                     _storageService.InitializeConnection(connection);
                     AddAndPrintMenuPath(connection.name);
-                    return;
+                    return true;
                 }
                 else
                 {

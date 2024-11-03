@@ -1,10 +1,6 @@
-﻿using Azure.Storage.Blobs.Models;
-using Azure.Storage.Blobs;
-using Azure;
-using Integrations.Storage.Inspector.Helpers;
+﻿using Integrations.Storage.Inspector.Helpers;
 using Microsoft.Extensions.Hosting;
 using System.Text;
-using System.Buffers;
 
 namespace Integrations.Storage.Inspector
 {
@@ -46,23 +42,26 @@ namespace Integrations.Storage.Inspector
 
         private async Task DirectoryMenu(string containerName)
         {
-            List<string> directoryPath = new();
-            string prefix = "";
+            List<string> directoryPath = [];
             ColorConsole.WriteMenu("Options");
             ColorConsole.WriteMenu("Enter a directory path. Leave empty for root");
             ColorConsole.WriteMenu("[x] Back");
             _storageService.SetContainerClient(containerName);
-            var list = await _storageService.GetDirectoryListing(containerName, prefix);
+            var list = await _storageService.GetDirectoryListing(containerName, "");
             foreach (var item in list)
             {
-                ColorConsole.WriteLineYellow(item);
+                ColorConsole.WriteLineYellow(item.Name);
             }
 
             do
             {
                 var inputArgs = ColorConsole.Prompt(GetDirectoryPathString(directoryPath)).Split(" ");
                 var input = "";
-                if (inputArgs[0].ToLower() == "cd")
+                if (inputArgs[0] == "x")
+                {
+                    return;
+                }
+                else if (inputArgs[0].ToLower() == "cd")
                 {
                     if (inputArgs.Length >= 1)
                     {
@@ -84,13 +83,10 @@ namespace Integrations.Storage.Inspector
                 
                 list = await _storageService.GetDirectoryListing(containerName, GetDirectoryPathString(directoryPath));
                 foreach (var item in list)
-                {
-                    var arr = item.Split("/");
-                    var last = arr[arr.Length - 2];
-                    ColorConsole.WriteLineYellow(last);
+                {       
+                    ColorConsole.WriteLineYellow(item.Name);
                 }
             } while (true);
-
         }
 
         private static string GetDirectoryPathString(List<string> list)

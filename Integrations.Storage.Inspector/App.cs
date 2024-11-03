@@ -31,11 +31,16 @@ namespace Integrations.Storage.Inspector
             Console.Clear();
             if (_connections == null)
             {
+                CloseDown();
                 return;
             }
             AddAndPrintMenuPath("");
-            ConnectionSelectionMenu();
-            bool proceed = true;
+            if (!ConnectionSelectionMenu())
+            {
+                CloseDown();
+                return;
+            }
+            
             do
             {
                 Console.WriteLine();
@@ -58,13 +63,11 @@ namespace Integrations.Storage.Inspector
                         ColorConsole.WriteLineRed("Please enter a valid option.");
                         break;
                     default:
-                        proceed = false;
-                        ColorConsole.WriteLineYellow("Closing down application...");
-                        _hostApplicationLifetime.StopApplication();
+                        CloseDown();
                         return;
                     }
             }
-            while (proceed);
+            while (true);
         }
 
         private void AddAndPrintMenuPath(string s)
@@ -88,6 +91,12 @@ namespace Integrations.Storage.Inspector
             {
                 ColorConsole.WriteGreen($"{item}/");
             }
+        }
+
+        private void CloseDown()
+        {
+            ColorConsole.WriteLineYellow("Closing down application...");
+            _hostApplicationLifetime.StopApplication();
         }
     }
 }

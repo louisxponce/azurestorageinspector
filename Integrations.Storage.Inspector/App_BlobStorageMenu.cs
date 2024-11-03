@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Integrations.Storage.Inspector
 {
-    public partial class App : BackgroundService
+    public partial class App
     {
         private async Task BlobStorageMenu()
         {
@@ -15,7 +15,7 @@ namespace Integrations.Storage.Inspector
                 Console.WriteLine();
                 var list = _storageService.GetContainers();
                 ColorConsole.WriteLineWhite($"Listing {list.Count} found container(s):");
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     var containerName = list[i];
                     ColorConsole.WriteLineYellow($"{i}. {containerName}");
@@ -23,7 +23,7 @@ namespace Integrations.Storage.Inspector
                 ColorConsole.WriteMenu("[ ] Select a container by index number");
                 ColorConsole.WriteMenu("[x] Back");
                 var input = ColorConsole.Prompt().ToUpper();
-                if (int.TryParse(input, out int idx) && idx < list.Count)
+                if (int.TryParse(input, out var idx) && idx < list.Count)
                 {
                     await BlobDownloadMenu(list[idx]);
                 }
@@ -42,7 +42,6 @@ namespace Integrations.Storage.Inspector
 
         private async Task BlobDownloadMenu(string containerName)
         {
-            //AddAndPrintMenuPath(containerName);
             _menuPath.Add(containerName);
             Console.WriteLine();
             ColorConsole.WriteWhite("Container: ");
@@ -58,13 +57,13 @@ namespace Integrations.Storage.Inspector
                 var input = ColorConsole.Prompt();
                 try
                 {
-                    input = input.Replace("\\\\", "\\").Replace("\\", "/");
+                    input = input.Replace(@"\\", @"\").Replace(@"\", "/");
                     if (input.EndsWith('*'))
                     {
                         var prefix = input.Replace("*", "");
                         await MultipleBlobDownloadMenu(containerName, prefix);
                     }
-                    else if (input.ToUpper() == "X")
+                    else if (input.ToLower() == "x")
                     {
                         TrimAndPrintMenuPath();
                         return;
@@ -91,7 +90,7 @@ namespace Integrations.Storage.Inspector
             ColorConsole.WriteLineWhite("Matching...");
             do
             {
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     var item = list[i];
                     ColorConsole.WriteLineYellow($"{i:00}. {item}");
@@ -101,37 +100,42 @@ namespace Integrations.Storage.Inspector
                 ColorConsole.WriteMenu("[d] Download ALL blobs. No print");
                 ColorConsole.WriteMenu("[dw] Download ALL blobs WITH print");
                 ColorConsole.WriteMenu("[x] Back");
-                var input = ColorConsole.Prompt().ToUpper();
+                var input = ColorConsole.Prompt().ToLower();
                 if (string.IsNullOrEmpty(input))
                 {
                     ColorConsole.WriteLineRed("Please enter a valid option.");
                 }
-                else if (input == "X")
+                else switch (input)
                 {
-                    return;
-                }
-                else if (input == "D")
-                {
-                    for (int j = 0; j < list.Count; j++)
+                    case "x":
+                        return;
+                    case "d":
                     {
-                        await DownloadBlob(containerName, list[j], false);
-                        Console.WriteLine();
+                        foreach (var t in list)
+                        {
+                            await DownloadBlob(containerName, t, false);
+                            Console.WriteLine();
+                        }
+                        break;
                     }
-                }
-                else if (input == "DW")
-                {
-                    for (int j = 0; j < list.Count; j++)
+                    case "dw":
                     {
-                        await DownloadBlob(containerName, list[j]);
-                        Console.WriteLine();
+                        foreach (var t in list)
+                        {
+                            await DownloadBlob(containerName, t);
+                            Console.WriteLine();
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    if (int.TryParse(input, out int idx) && idx < list.Count)
+                    default:
                     {
-                        await DownloadBlob(containerName, list[idx]);
-                        Console.WriteLine();
+                        if (int.TryParse(input, out var idx) && idx < list.Count)
+                        {
+                            await DownloadBlob(containerName, list[idx]);
+                            Console.WriteLine();
+                        }
+                        break;
                     }
                 }
             }
@@ -142,7 +146,7 @@ namespace Integrations.Storage.Inspector
         {
             var blobContent = await _storageService.GetBlobContent(containerName, blobName);
             var json = JsonPrettifyHelper.Prettify(blobContent);
-            var localPath = _localBlobService.SaveBlob(Path.GetFileName(blobName), json);
+            _localBlobService.SaveBlob(Path.GetFileName(blobName), json);
             if (print)
             {
                 JsonPrettifyHelper.WriteLineInColor(json);
@@ -152,11 +156,11 @@ namespace Integrations.Storage.Inspector
         private static Connections? LoadConnectionFromFile()
         {
             // Load connections
-            var connectionsPath = "connections.json";
+            const string connectionsPath = "connections.json";
             string json;
             if (!File.Exists(connectionsPath))
             {
-                // Create a dummy connection andf exporting to file
+                // Create a dummy connection and exporting to file
                 Connections conn = new()
                 {
                     connections = new()
@@ -177,11 +181,9 @@ namespace Integrations.Storage.Inspector
                 ColorConsole.WriteLineYellow("No connections.json file was found. A template has been created. Please fill in the information and run the program again.");
                 return null;
             }
-            else
-            {
-                json = File.ReadAllText(connectionsPath);
-                return JsonSerializer.Deserialize<Connections>(json);
-            }
+
+            json = File.ReadAllText(connectionsPath);
+            return JsonSerializer.Deserialize<Connections>(json);
         }
     }
 }

@@ -1,10 +1,9 @@
 ﻿using Integrations.Storage.Inspector.Helpers;
-using Microsoft.Extensions.Hosting;
 using System.Text;
 
 namespace Integrations.Storage.Inspector
 {
-    public partial class App : BackgroundService
+    public partial class App
     {
         private async Task BlobStorageHierarchicalMenu()
         {
@@ -14,20 +13,19 @@ namespace Integrations.Storage.Inspector
                 Console.WriteLine();
                 var list = _storageService.GetContainers();
                 ColorConsole.WriteLineWhite($"Listing {list.Count} found container(s):");
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     var containerName = list[i];
                     ColorConsole.WriteLineYellow($"{i}. {containerName}");
                 }
                 ColorConsole.WriteMenu("[ ] Select a container by index number");
                 ColorConsole.WriteMenu("[x] Back");
-                var input = ColorConsole.Prompt().ToUpper();
-                if (int.TryParse(input, out int idx) && idx < list.Count)
+                var input = ColorConsole.Prompt().ToLower();
+                if (int.TryParse(input, out var idx) && idx < list.Count)
                 {
-                    //await BlobDownloadMenu
                     await DirectoryMenu(list[idx]);
                 }
-                if (input == "X")
+                else if (input == "x")
                 {
                     TrimAndPrintMenuPath();
                     return;
@@ -61,7 +59,7 @@ namespace Integrations.Storage.Inspector
                 {
                     return;
                 }
-                else if (inputArgs[0].ToLower() == "cd")
+                if (inputArgs[0].ToLower() == "cd")
                 {
                     if (inputArgs.Length >= 1)
                     {
@@ -77,7 +75,6 @@ namespace Integrations.Storage.Inspector
                 }
                 else if (!string.IsNullOrEmpty(input))
                 {
-                    //input += input;
                     directoryPath.Add(input);
                 }
                 
@@ -95,7 +92,7 @@ namespace Integrations.Storage.Inspector
             foreach (var item in list)
             {
                 sb.Append(item);
-                sb.Append("/");
+                sb.Append('/');
             }
             return sb.ToString();
         }

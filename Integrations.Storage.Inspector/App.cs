@@ -14,7 +14,7 @@ namespace Integrations.Storage.Inspector
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly Connections? _connections;
         private List<LTopic> _topics;
-        private bool _topicsRetrieved = false;
+        private bool _topicsRetrieved;
         private readonly List<string> _menuPath = [];
 
         public App(ServiceBusService serviceBusService, StorageService storageService, LocalBlobService localBlobService, IHostApplicationLifetime hostApplicationLifetime)
@@ -47,16 +47,16 @@ namespace Integrations.Storage.Inspector
                 ColorConsole.WriteMenu("[s] Service Bus Topics");
                 ColorConsole.WriteMenu("[b] Blob Storage");
                 ColorConsole.WriteMenu("[f] Explore Blob Storage");
-                var input = ColorConsole.Prompt().ToUpper();
+                var input = ColorConsole.Prompt().ToLower();
                 switch (input)
                 {
-                    case "S":
+                    case "s":
                         await ServiceBusMenu();
                         break;
-                    case "B":
+                    case "b":
                         await BlobStorageMenu();
                         break;
-                    case "F":
+                    case "f":
                         await BlobStorageHierarchicalMenu();
                         break;
                     case "":
